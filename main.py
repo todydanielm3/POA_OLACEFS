@@ -3,6 +3,11 @@ import streamlit as st
 # ✅ Deve ser a PRIMEIRA chamada do Streamlit
 st.set_page_config(page_title="POA OLACEFS", layout="wide")
 
+# ✅ Criação automática do banco de dados
+from modelos import criar_banco
+criar_banco()
+
+# Módulos da aplicação
 from novo_poa import show_novo_poa
 from visualizar_poa import show_visualizar_poa
 from login import show_login
