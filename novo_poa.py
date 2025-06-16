@@ -1,14 +1,13 @@
 # novo_poa.py
 import streamlit as st
-import pandas as pd        # <— não esqueça!
-import os
-from importador import importar_pdf
-from modelos import SessionLocal, Documento, Responsavel, Atividade, Alineamento, Recurso
+import pandas as pd
+from modelos import SessionLocal, Documento, Responsavel, Atividade, Alineamento, Recurso, Lote
+from sqlalchemy.exc import IntegrityError
+
 
 def show_novo_poa():
     st.title("📋 Cadastro POA - OLACEFS")
 
-    # Sessões
     if 'responsables' not in st.session_state:
         st.session_state.responsables = []
     if 'actividades' not in st.session_state:
@@ -86,44 +85,40 @@ def show_novo_poa():
             })
     st.dataframe(pd.DataFrame(st.session_state.recursos))
 
-    # Importar PDF
+    st.markdown("---")
+    if st.button("📤 Enviar formulário para análise"):
+        session = SessionLocal()
+        try:
+            lote = Lote(orgao=organo, presidencia=presidencia, ano=ano)
+            session.add(lote)
+            session.flush()  # Para obter lote.id antes do commit
 
-    # Visualização interna
-    st.header("📊 Visualização dos Dados")
-    session = SessionLocal()
-    tab_doc, tab_resp, tab_ativ, tab_ali, tab_rec = st.tabs([
-        "📁 Documentos", "👥 Responsáveis", "📝 Atividades", "🧭 Alineamentos", "💰 Recursos"
-    ])
-    with tab_doc:
-        df = pd.DataFrame([{
-            "ID": d.id, "Nome": d.nome, "Ano": d.ano,
-            "Órgão": d.orgao, "Presidência": d.presidencia
-        } for d in session.query(Documento).all()])
-        st.dataframe(df, use_container_width=True)
-    with tab_resp:
-        df = pd.DataFrame([{
-            "Documento ID": r.documento_id, "Nome": r.nome,
-            "Cargo": r.cargo, "Email": r.email, "Contato": r.contato
-        } for r in session.query(Responsavel).all()])
-        st.dataframe(df, use_container_width=True)
-    with tab_ativ:
-        df = pd.DataFrame([{
-            "Documento ID": a.documento_id, "Meta": a.meta,
-            "Atividade": a.atividade, "Objetivo": a.objetivo
-        } for a in session.query(Atividade).all()])
-        st.dataframe(df, use_container_width=True)
-    with tab_ali:
-        df = pd.DataFrame([{
-            "Documento ID": a.documento_id,
-            "Atividade PO": a.atividade_po,
-            "Meta Estratégica": a.meta_estrategica,
-            "Estratégia": a.estrategia
-        } for a in session.query(Alineamento).all()])
-        st.dataframe(df, use_container_width=True)
-    with tab_rec:
-        df = pd.DataFrame([{
-            "Documento ID": r.documento_id, "Atividade": r.atividade,
-            "EFS": r.efs, "OLACEFS": r.olacefs, "Outros": r.outros, "Total": r.total
-        } for r in session.query(Recurso).all()])
-        st.dataframe(df, use_container_width=True)
-    session.close()
+            doc = Documento(
+                nome=f"POA_{organo}_{ano}", ano=ano,
+                orgao=organo, presidencia=presidencia,
+                lote_id=lote.id
+            )
+            session.add(doc)
+            session.flush()
+
+            for r in st.session_state.responsables:
+                session.add(Responsavel(documento_id=doc.id, nome=r["Nombre"], cargo=r["Cargo"], email=r["Correo"], contato=r["Contacto"]))
+            for a in st.session_state.actividades:
+                session.add(Atividade(documento_id=doc.id, meta=a["Meta"], atividade=a["Actividad"], objetivo=a["Objetivo"]))
+            for a in st.session_state.alineaciones:
+                session.add(Alineamento(documento_id=doc.id, atividade_po=a["Actividad PO"], meta_estrategica=a["Meta Estratégica"], estrategia=a["Estrategia"]))
+            for r in st.session_state.recursos:
+                session.add(Recurso(documento_id=doc.id, atividade=r["Actividad"], efs=r["EFS"], olacefs=r["OLACEFS"], outros=r["OTROS"], total=r["TOTAL"]))
+
+            session.commit()
+            st.success("✅ Formulário enviado com sucesso para análise!")
+
+            st.session_state.responsables.clear()
+            st.session_state.actividades.clear()
+            st.session_state.alineaciones.clear()
+            st.session_state.recursos.clear()
+        except IntegrityError:
+            session.rollback()
+            st.error("❌ Já existe um POA para esse órgão e ano. Verifique e tente novamente.")
+        finally:
+            session.close()
