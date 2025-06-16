@@ -87,21 +87,6 @@ def show_novo_poa():
     st.dataframe(pd.DataFrame(st.session_state.recursos))
 
     # Importar PDF
-    st.header("📥 Importar POA a partir de PDF")
-    uploaded_file = st.file_uploader("Selecione um PDF", type=["pdf"])
-    nome_doc = st.text_input("Nome do Documento (ex: COINFRA)")
-    if uploaded_file and nome_doc:
-        temp = f"temp_{uploaded_file.name}"
-        with open(temp, "wb") as f:
-            f.write(uploaded_file.read())
-        if st.button("📄 Importar PDF"):
-            try:
-                importar_pdf(temp, nome_doc)
-                st.success(f"Documento '{nome_doc}' importado com sucesso!")
-            except Exception as e:
-                st.error(f"Erro ao importar: {e}")
-            finally:
-                os.remove(temp)
 
     # Visualização interna
     st.header("📊 Visualização dos Dados")

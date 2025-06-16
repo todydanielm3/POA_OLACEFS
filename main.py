@@ -1,12 +1,19 @@
-# main.py
 import streamlit as st
-from novo_poa import show_novo_poa
-from visualizar_poa import show_visualizar_poa
 
-# Só aqui fazemos set_page_config
+# ✅ Deve ser a PRIMEIRA chamada do Streamlit
 st.set_page_config(page_title="POA OLACEFS", layout="wide")
 
-# Estado inicial
+from novo_poa import show_novo_poa
+from visualizar_poa import show_visualizar_poa
+from login import show_login
+from menu_inicial import show_menu
+
+# ─────────────────────────────── AUTENTICAÇÃO ───────────────────────────────
+if 'authenticated' not in st.session_state or not st.session_state.authenticated:
+    show_login()
+    st.stop()  # ✅ Garante que o restante do código não será executado sem login
+
+# ───────────────────────────── ESTADO INICIAL ───────────────────────────────
 if "pagina" not in st.session_state:
     st.session_state.pagina = "menu"
 
