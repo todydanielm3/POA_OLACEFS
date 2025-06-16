@@ -1,124 +1,107 @@
-# novo_poa.py
 import streamlit as st
-import pandas as pd
-from modelos import SessionLocal, Documento, Responsavel, Atividade, Alineamento, Recurso, Lote
-from sqlalchemy.exc import IntegrityError
-
+from sqlalchemy.orm import Session
+from modelos import SessionLocal, Documento, Responsavel, Atividade, Alineamento, Recurso
+from datetime import datetime
 
 def show_novo_poa():
     st.title("📋 Cadastro POA - OLACEFS")
+    session: Session = SessionLocal()
 
-    if 'responsables' not in st.session_state:
-        st.session_state.responsables = []
-    if 'actividades' not in st.session_state:
-        st.session_state.actividades = []
-    if 'alineaciones' not in st.session_state:
-        st.session_state.alineaciones = []
-    if 'recursos' not in st.session_state:
-        st.session_state.recursos = []
+    st.subheader("I. INFORMACIÓN GENERAL")
 
-    # I. INFORMACIÓN GENERAL
-    st.header("I. INFORMACIÓN GENERAL")
-    organo = st.text_input("Órgão")
-    presidencia = st.text_input("Presidência")
-    ano = st.text_input("Ano")
+    col1, col2 = st.columns(2)
+    orgao = col1.text_input("Órgano", placeholder="Comisione Participación Ciudadana")
+    presidencia = col2.text_input("Presidencia", placeholder="Contraloría General de la República del Perú")
+    ano = st.number_input("Año", min_value=2000, max_value=2100, value=datetime.now().year)
 
-    # Responsables
-    st.subheader("Responsables de la formulación del POA")
-    with st.form("form_resp"):
-        cols = st.columns(4)
-        nome = cols[0].text_input("Nombre")
-        cargo = cols[1].text_input("Cargo")
-        email = cols[2].text_input("Correo")
-        contato = cols[3].text_input("Contato")
-        if st.form_submit_button("Adicionar"):
-            st.session_state.responsables.append({
-                "Nombre": nome, "Cargo": cargo,
-                "Correo": email, "Contacto": contato
-            })
-    st.dataframe(pd.DataFrame(st.session_state.responsables))
+    st.markdown("**Responsables de la formulación del POA**")
+    col1, col2 = st.columns(2)
+    nome = col1.text_input("Nombre")
+    cargo = col2.text_input("Cargo")
+    col1, col2 = st.columns(2)
+    email = col1.text_input("Correo")
+    telefone = col2.text_input("Contacto")
 
-    # Atividades
-    st.header("Actividades Generales")
-    with st.form("form_activ"):
-        meta = st.text_input("Meta estratégica")
-        act = st.text_input("Actividad")
-        objetivo = st.text_area("Objetivo")
-        if st.form_submit_button("Adicionar"):
-            st.session_state.actividades.append({
-                "Meta": meta, "Actividad": act, "Objetivo": objetivo
-            })
-    st.dataframe(pd.DataFrame(st.session_state.actividades))
+    st.markdown("**Actividades Generales**")
+    col1, col2 = st.columns(2)
+    meta_estrategica = col1.text_input("Meta estratégica")
+    atividade = col2.text_input("Actividad")
+    objetivo = st.text_area("Objetivo")
 
-    # Presupuesto total
-    st.subheader("Presupuesto Total")
+    st.markdown("**Presupuesto Total**")
     col1, col2, col3 = st.columns(3)
-    pres_efs = col1.number_input("EFS (USD$)", min_value=0)
-    pres_olacefs = col2.number_input("OLACEFS (USD$)", min_value=0)
-    pres_otros = col3.number_input("OTROS (USD$)", min_value=0)
-    st.success(f"💰 Presupuesto Total: ${pres_efs + pres_olacefs + pres_otros:,.2f}")
+    efs = col1.number_input("EFS (USD$)", min_value=0.0, step=100.0)
+    olacefs = col2.number_input("OLACEFS (USD$)", min_value=0.0, step=100.0)
+    outros = col3.number_input("OTROS (USD$)", min_value=0.0, step=100.0)
 
-    # II. ALINEACIÓN
-    st.header("II. ALINEACIÓN CON EL PLAN ESTRATÉGICO")
-    with st.form("form_alin"):
-        act_po = st.text_input("Actividad del Plan Operativo")
-        meta_est = st.text_input("Meta Estratégica")
-        estrategia = st.text_area("Estrategia")
-        if st.form_submit_button("Adicionar"):
-            st.session_state.alineaciones.append({
-                "Actividad PO": act_po, "Meta Estratégica": meta_est, "Estrategia": estrategia
-            })
-    st.dataframe(pd.DataFrame(st.session_state.alineaciones))
+    total = efs + olacefs + outros
+    st.success(f"💰 Presupuesto Total: ${total:,.2f}")
 
-    # III. RECURSOS
-    st.header("III. ASIGNACIÓN DE RECURSOS")
-    with st.form("form_recursos"):
-        act_r = st.text_input("Actividad")
-        efs_r = st.number_input("EFS (USD$)", min_value=0, key="efs_r")
-        olacefs_r = st.number_input("OLACEFS (USD$)", min_value=0, key="olacefs_r")
-        otros_r = st.number_input("OTROS (USD$)", min_value=0, key="otros_r")
-        if st.form_submit_button("Adicionar"):
-            st.session_state.recursos.append({
-                "Actividad": act_r, "EFS": efs_r,
-                "OLACEFS": olacefs_r, "OTROS": otros_r,
-                "TOTAL": efs_r + olacefs_r + otros_r
-            })
-    st.dataframe(pd.DataFrame(st.session_state.recursos))
+    st.subheader("II. ALINEACIÓN CON EL PLAN ESTRATÉGICO")
+    plano_atividade = st.text_area("Actividad del Plan Operativo")
+    meta = st.text_input("Meta Estratégica")
+    estrategia = st.text_input("Estrategia")
 
-    st.markdown("---")
-    if st.button("📤 Enviar formulário para análise"):
-        session = SessionLocal()
+    st.subheader("III. ASIGNACIÓN DE RECURSOS")
+    col1, col2, col3 = st.columns(3)
+    r_efs = col1.number_input("EFS (USD$)", key="r_efs", min_value=0.0, step=100.0)
+    r_olacefs = col2.number_input("OLACEFS (USD$)", key="r_olacefs", min_value=0.0, step=100.0)
+    r_outros = col3.number_input("OTROS (USD$)", key="r_outros", min_value=0.0, step=100.0)
+
+    if st.button("💾 Guardar POA"):
         try:
-            lote = Lote(orgao=organo, presidencia=presidencia, ano=ano)
-            session.add(lote)
-            session.flush()  # Para obter lote.id antes do commit
-
             doc = Documento(
-                nome=f"POA_{organo}_{ano}", ano=ano,
-                orgao=organo, presidencia=presidencia,
-                lote_id=lote.id
+                orgao=orgao,
+                presidencia=presidencia,
+                ano=ano,
+                plano_atividade=plano_atividade,
+                meta=meta,
+                estrategia=estrategia
             )
             session.add(doc)
-            session.flush()
+            session.flush()  # para obter doc.id
 
-            for r in st.session_state.responsables:
-                session.add(Responsavel(documento_id=doc.id, nome=r["Nombre"], cargo=r["Cargo"], email=r["Correo"], contato=r["Contacto"]))
-            for a in st.session_state.actividades:
-                session.add(Atividade(documento_id=doc.id, meta=a["Meta"], atividade=a["Actividad"], objetivo=a["Objetivo"]))
-            for a in st.session_state.alineaciones:
-                session.add(Alineamento(documento_id=doc.id, atividade_po=a["Actividad PO"], meta_estrategica=a["Meta Estratégica"], estrategia=a["Estrategia"]))
-            for r in st.session_state.recursos:
-                session.add(Recurso(documento_id=doc.id, atividade=r["Actividad"], efs=r["EFS"], olacefs=r["OLACEFS"], outros=r["OTROS"], total=r["TOTAL"]))
+            resp = Responsavel(
+                nome=nome,
+                cargo=cargo,
+                email=email,
+                telefone=telefone,
+                documento_id=doc.id
+            )
+            session.add(resp)
+
+            ativ = Atividade(
+                meta_estrategica=meta_estrategica,
+                descricao=atividade,
+                objetivo=objetivo,
+                efs=efs,
+                olacefs=olacefs,
+                outros=outros,
+                documento_id=doc.id
+            )
+            session.add(ativ)
+
+            alin = Alineamento(
+                atividade=plano_atividade,
+                meta=meta,
+                estrategia=estrategia,
+                documento_id=doc.id
+            )
+            session.add(alin)
+
+            recurso = Recurso(
+                atividade=atividade,
+                efs=r_efs,
+                olacefs=r_olacefs,
+                outros=r_outros,
+                documento_id=doc.id
+            )
+            session.add(recurso)
 
             session.commit()
-            st.success("✅ Formulário enviado com sucesso para análise!")
-
-            st.session_state.responsables.clear()
-            st.session_state.actividades.clear()
-            st.session_state.alineaciones.clear()
-            st.session_state.recursos.clear()
-        except IntegrityError:
+            st.success("✅ POA guardado correctamente.")
+        except Exception as e:
             session.rollback()
-            st.error("❌ Já existe um POA para esse órgão e ano. Verifique e tente novamente.")
+            st.error(f"❌ Error al guardar el POA: {e}")
         finally:
             session.close()
