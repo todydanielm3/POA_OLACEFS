@@ -1,8 +1,79 @@
-# novo_poa.py
 import streamlit as st
 import pandas as pd
 from modelos import SessionLocal, Documento, Responsavel, Atividade, Alineamento, Recurso, Lote
 from sqlalchemy.exc import IntegrityError
+
+st.markdown(
+    """
+    <style>
+    /* --- Importa a fonte Roboto (Google Fonts) --- */
+    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+
+    html, body, [class*="css"]  {
+        font-family: 'Roboto', sans-serif;
+    }
+
+    /* Fundo suave em degradê (mesma vibração do site) */
+    body {
+        background: linear-gradient(180deg,#F4F9FC 0%, #EAF4FB 40%, #F4F9FC 100%);
+    }
+
+    /* “Cartões” – caixas internas (secondaryBackground) */
+    .stContainer, .stTabs, .stExpander {
+        background-color:#FFFFFF;
+        border-radius:8px;
+        box-shadow:0 2px 4px rgba(0,0,0,.06);
+        padding:0.5rem 1rem;
+    }
+
+    /* Botões primários */
+    button[data-baseweb="button"] {
+        background-color:#0072BC !important;
+        color:#fff !important;
+        border-radius:6px;
+        font-weight:500;
+        border:none;
+        transition:all .2s;
+    }
+    button[data-baseweb="button"]:hover {
+        background-color:#005a91 !important;
+    }
+
+    /* Botões secundários (ex.: “Voltar ao menu”)  */
+    button[kind="secondary"]{
+        background-color:#8BC540 !important;
+        color:#fff !important;
+    }
+
+    /* Campos de entrada */
+    input, textarea, .stNumberInput input {
+        border:1px solid #C7DAEB;
+        border-radius:6px;
+    }
+
+    /* Separadores h2 / h3 */
+    h2, h3 {
+        color:#0072BC;
+        border-bottom:2px solid #0072BC20;
+        padding-bottom:4px;
+        margin-bottom:0.5rem;
+    }
+
+    /* Alertas de sucesso / erro */
+    .stAlert-success {
+        background:#E6F6D8;        /* verde bem claro */
+        border-left:6px solid #8BC540;
+    }
+    .stAlert-error{
+        background:#FEE9E4;        /* laranja suave */
+        border-left:6px solid #F1592A;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+
 
 
 def show_novo_poa():
@@ -19,7 +90,32 @@ def show_novo_poa():
 
     # I. INFORMACIÓN GENERAL
     st.header("I. INFORMACIÓN GENERAL")
-    organo = st.text_input("Órgão")
+
+    opciones_organos = {
+        "COMITÉS": [
+            "CCC - Creación de Capacidades",
+            "CAJ - Asesoria jurídica"
+        ],
+        "COMISIONES": [
+            "CTPBG - Buena Gobernanza",
+            "COMTEMA - Medio Ambiente",
+            "CPC - Participación Ciudadana",
+            "CEDEIR - Evaluación del Desempeño",
+            "CTIC - Tecnologías de la Información",
+            "CTCT - Corrupción Transnacional",
+            "CGID - Género, Inclusión y Diversidad",
+            "CPE - PARLAMENTOS Y EFS",
+            "COINFRA -Infraestructura y Transiciones Energéticas"
+        ],
+        "GRUPOS DE TRABAJO": [
+            "GTFD - Fiscalización de desastres"
+        ]
+    }
+
+    with st.expander("Seleccionar Órgão"):
+        grupo_orgao = st.radio("Selecciona el tipo de órgano:", list(opciones_organos.keys()))
+        organo = st.selectbox("Órgão", opciones_organos[grupo_orgao])
+
     presidencia = st.text_input("Presidência")
     ano = st.text_input("Ano")
 

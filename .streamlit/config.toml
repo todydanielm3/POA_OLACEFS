@@ -1,0 +1,8 @@
+[theme]                 # ——— Cores oficiais OLACEFS ———
+base                     = "light"
+primaryColor             = "#0072BC"   # Azul OLACEFS
+successColor             = "#8BC540"   # Verde
+backgroundColor          = "#F4F9FC"   # Azul-clarinho (fundo geral)
+secondaryBackgroundColor = "#FFFFFF"   # Cartões / caixas
+textColor                = "#2E2E2E"   # Cinza quase preto
+font                    = "sans serif" # trocaremos por Roboto via CSS
