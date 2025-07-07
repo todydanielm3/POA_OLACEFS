@@ -52,7 +52,7 @@ st.markdown(
     button[data-baseweb="button"]:hover{background:#005a91 !important;}
 
     /* Botão secundário (ex.: Voltar) */
-    button[kind="secondary"]{background:#8BC540 !important; color:#FFF !important;
+    button[kind="secondary"]{background:#0072BC !important; color:#FFF !important;
         border-radius:8px;}               /* ←▼ */
 
     /* Campos de entrada */

@@ -3,92 +3,26 @@ import pandas as pd
 from modelos import SessionLocal, Documento, Responsavel, Atividade, Alineamento, Recurso, Lote
 from sqlalchemy.exc import IntegrityError
 
-st.markdown(
-    """
-    <style>
-    /* --- Importa a fonte Roboto (Google Fonts) --- */
-    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
-
-    html, body, [class*="css"]  {
-        font-family: 'Roboto', sans-serif;
-    }
-
-    /* Fundo suave em degradê (mesma vibração do site) */
-    body {
-        background: linear-gradient(180deg,#F4F9FC 0%, #EAF4FB 40%, #F4F9FC 100%);
-    }
-
-    /* “Cartões” – caixas internas (secondaryBackground) */
-    .stContainer, .stTabs, .stExpander {
-        background-color:#FFFFFF;
-        border-radius:8px;
-        box-shadow:0 2px 4px rgba(0,0,0,.06);
-        padding:0.5rem 1rem;
-    }
-
-    /* Botões primários */
-    button[data-baseweb="button"] {
-        background-color:#0072BC !important;
-        color:#fff !important;
-        border-radius:6px;
-        font-weight:500;
-        border:none;
-        transition:all .2s;
-    }
-    button[data-baseweb="button"]:hover {
-        background-color:#005a91 !important;
-    }
-
-    /* Botões secundários (ex.: “Voltar ao menu”)  */
-    button[kind="secondary"]{
-        background-color:#8BC540 !important;
-        color:#fff !important;
-    }
-
-    /* Campos de entrada */
-    input, textarea, .stNumberInput input {
-        border:1px solid #C7DAEB;
-        border-radius:6px;
-    }
-
-    /* Separadores h2 / h3 */
-    h2, h3 {
-        color:#0072BC;
-        border-bottom:2px solid #0072BC20;
-        padding-bottom:4px;
-        margin-bottom:0.5rem;
-    }
-
-    /* Alertas de sucesso / erro */
-    .stAlert-success {
-        background:#E6F6D8;        /* verde bem claro */
-        border-left:6px solid #8BC540;
-    }
-    .stAlert-error{
-        background:#FEE9E4;        /* laranja suave */
-        border-left:6px solid #F1592A;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
-
-
-
 
 def show_novo_poa():
     st.title("📋 Cadastro POA - OLACEFS")
 
-    if 'responsables' not in st.session_state:
-        st.session_state.responsables = []
-    if 'actividades' not in st.session_state:
-        st.session_state.actividades = []
-    if 'alineaciones' not in st.session_state:
-        st.session_state.alineaciones = []
-    if 'recursos' not in st.session_state:
-        st.session_state.recursos = []
+    # ---------------- Session state lists ----------------
+    for key in ("responsables", "actividades", "alineaciones", "recursos"):
+        st.session_state.setdefault(key, [])
 
-    # I. INFORMACIÓN GENERAL
+    # ----------------------- Metas -----------------------
+    metas_estrategicas = [
+        "Seleccione uno de las Metas",
+        "Meta Estratégica 1: Consolidar la Sostenibilidad Técnico-Financiera de la Organización",
+        "Meta Estratégica 2: Fortalecer la Gestión Interna hacia Resultados e Impacto",
+        "Meta Estratégica 3: Fortalecer la Comunicación y el Posicionamiento Internacional.",
+        "Meta Estratégica 4: Potenciar el Valor y Beneficio de las EFS para la Ciudadanía mediante Estándares y Buenas Prácticas; así como Impulsar el Rol de las EFS en la Agenda 2030; y la Participación Ciudadana en el Control Fiscal.",
+        "Meta Estratégica 5: Fortalecer y Armonizar el Servicio de Creación de Capacidades.",
+        "Meta Estratégica 6: Impulsar la Transformación Digital y la Gestión del Conocimiento"
+    ]
+
+    # ---------------- I. INFORMACIÓN GENERAL -------------
     st.header("I. INFORMACIÓN GENERAL")
 
     opciones_organos = {
@@ -107,9 +41,7 @@ def show_novo_poa():
             "CPE - PARLAMENTOS Y EFS",
             "COINFRA -Infraestructura y Transiciones Energéticas"
         ],
-        "GRUPOS DE TRABAJO": [
-            "GTFD - Fiscalización de desastres"
-        ]
+        "GRUPOS DE TRABAJO": ["GTFD - Fiscalización de desastres"]
     }
 
     with st.expander("Seleccionar Órgão"):
@@ -119,7 +51,7 @@ def show_novo_poa():
     presidencia = st.text_input("Presidência")
     ano = st.text_input("Ano")
 
-    # Responsables
+    # ---------------- Responsables -----------------------
     st.subheader("Responsables de la formulación del POA")
     with st.form("form_resp"):
         cols = st.columns(4)
@@ -129,15 +61,14 @@ def show_novo_poa():
         contato = cols[3].text_input("Contato")
         if st.form_submit_button("Adicionar"):
             st.session_state.responsables.append({
-                "Nombre": nome, "Cargo": cargo,
-                "Correo": email, "Contacto": contato
+                "Nombre": nome, "Cargo": cargo, "Correo": email, "Contacto": contato
             })
     st.dataframe(pd.DataFrame(st.session_state.responsables))
 
-    # Atividades
+    # ---------------- Actividades ------------------------
     st.header("Actividades Generales")
     with st.form("form_activ"):
-        meta = st.text_input("Meta estratégica")
+        meta = st.selectbox("Meta estratégica", metas_estrategicas)
         act = st.text_input("Actividad")
         objetivo = st.text_area("Objetivo")
         if st.form_submit_button("Adicionar"):
@@ -146,7 +77,7 @@ def show_novo_poa():
             })
     st.dataframe(pd.DataFrame(st.session_state.actividades))
 
-    # Presupuesto total
+    # ---------------- Presupuesto ------------------------
     st.subheader("Presupuesto Total")
     col1, col2, col3 = st.columns(3)
     pres_efs = col1.number_input("EFS (USD$)", min_value=0)
@@ -154,11 +85,11 @@ def show_novo_poa():
     pres_otros = col3.number_input("OTROS (USD$)", min_value=0)
     st.success(f"💰 Presupuesto Total: ${pres_efs + pres_olacefs + pres_otros:,.2f}")
 
-    # II. ALINEACIÓN
+    # ---------------- Alineación -------------------------
     st.header("II. ALINEACIÓN CON EL PLAN ESTRATÉGICO")
     with st.form("form_alin"):
         act_po = st.text_input("Actividad del Plan Operativo")
-        meta_est = st.text_input("Meta Estratégica")
+        meta_est = st.selectbox("Meta Estratégica", metas_estrategicas, key="sel_meta_est")
         estrategia = st.text_area("Estrategia")
         if st.form_submit_button("Adicionar"):
             st.session_state.alineaciones.append({
@@ -166,7 +97,7 @@ def show_novo_poa():
             })
     st.dataframe(pd.DataFrame(st.session_state.alineaciones))
 
-    # III. RECURSOS
+    # ---------------- Recursos ---------------------------
     st.header("III. ASIGNACIÓN DE RECURSOS")
     with st.form("form_recursos"):
         act_r = st.text_input("Actividad")
@@ -175,12 +106,12 @@ def show_novo_poa():
         otros_r = st.number_input("OTROS (USD$)", min_value=0, key="otros_r")
         if st.form_submit_button("Adicionar"):
             st.session_state.recursos.append({
-                "Actividad": act_r, "EFS": efs_r,
-                "OLACEFS": olacefs_r, "OTROS": otros_r,
-                "TOTAL": efs_r + olacefs_r + otros_r
+                "Actividad": act_r, "EFS": efs_r, "OLACEFS": olacefs_r,
+                "OTROS": otros_r, "TOTAL": efs_r + olacefs_r + otros_r
             })
     st.dataframe(pd.DataFrame(st.session_state.recursos))
 
+    # ---------------- Envio ------------------------------
     st.markdown("---")
     if st.button("📤 Enviar formulário para análise"):
         session = SessionLocal()
@@ -190,9 +121,8 @@ def show_novo_poa():
             session.flush()
 
             doc = Documento(
-                nome=f"POA_{organo}_{ano}", ano=ano,
-                orgao=organo, presidencia=presidencia,
-                lote_id=lote.id
+                nome=f"POA_{organo}_{ano}", ano=ano, orgao=organo,
+                presidencia=presidencia, lote_id=lote.id
             )
             session.add(doc)
             session.flush()
@@ -200,42 +130,31 @@ def show_novo_poa():
             for r in st.session_state.responsables:
                 session.add(Responsavel(
                     documento_id=doc.id,
-                    nome=r.get("Nombre", ""),
-                    cargo=r.get("Cargo", ""),
-                    email=r.get("Correo", ""),
-                    contato=r.get("Contacto", "")
+                    nome=r.get("Nombre", ""), cargo=r.get("Cargo", ""),
+                    email=r.get("Correo", ""), contato=r.get("Contato", "")
                 ))
             for a in st.session_state.actividades:
                 session.add(Atividade(
-                    documento_id=doc.id,
-                    meta=a.get("Meta", ""),
-                    atividade=a.get("Actividad", ""),
-                    objetivo=a.get("Objetivo", "")
+                    documento_id=doc.id, meta=a.get("Meta", ""),
+                    atividade=a.get("Actividad", ""), objetivo=a.get("Objetivo", "")
                 ))
             for a in st.session_state.alineaciones:
                 session.add(Alineamento(
-                    documento_id=doc.id,
-                    atividade_po=a.get("Actividad PO", ""),
-                    meta_estrategica=a.get("Meta Estratégica", ""),
-                    estrategia=a.get("Estrategia", "")
+                    documento_id=doc.id, atividade_po=a.get("Actividad PO", ""),
+                    meta_estrategica=a.get("Meta Estratégica", ""), estrategia=a.get("Estrategia", "")
                 ))
             for r in st.session_state.recursos:
                 session.add(Recurso(
-                    documento_id=doc.id,
-                    atividade=r.get("Actividad", ""),
-                    efs=r.get("EFS", 0),
-                    olacefs=r.get("OLACEFS", 0),
-                    outros=r.get("OTROS", 0),
-                    total=r.get("TOTAL", 0)
+                    documento_id=doc.id, atividade=r.get("Actividad", ""),
+                    efs=r.get("EFS", 0), olacefs=r.get("OLACEFS", 0),
+                    outros=r.get("OTROS", 0), total=r.get("TOTAL", 0)
                 ))
 
             session.commit()
             st.success("✅ Formulário enviado com sucesso para análise!")
 
-            st.session_state.responsables.clear()
-            st.session_state.actividades.clear()
-            st.session_state.alineaciones.clear()
-            st.session_state.recursos.clear()
+            for key in ("responsables", "actividades", "alineaciones", "recursos"):
+                st.session_state[key].clear()
         except IntegrityError:
             session.rollback()
             st.error("❌ Já existe um POA para esse órgão e ano. Verifique e tente novamente.")
