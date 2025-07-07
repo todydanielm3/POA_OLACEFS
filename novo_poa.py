@@ -48,7 +48,34 @@ def show_novo_poa():
         grupo_orgao = st.radio("Selecciona el tipo de órgano:", list(opciones_organos.keys()))
         organo = st.selectbox("Órgão", opciones_organos[grupo_orgao])
 
-    presidencia = st.text_input("Presidência")
+    # --------------------- Presidencias (22 EFS) ----------------------
+    presidencias_efs = [
+    "Seleccione una de las EFS",
+    "Auditoría General de la Nación Argentina",
+    "Auditoría General de Bélice",
+    "Contraloría General del Estado Plurinacional de Bolivia",
+    "Tribunal de Cuentas de la Unión de Brasil",
+    "Contraloría General de la República de Chile",
+    "Contraloría General de la República de Colombia",
+    "Contraloría General de la República de Costa Rica",
+    "Contraloría General de la República de Cuba",
+    "Contraloría General de Curazao",
+    "Contraloría General del Estado de la República de Ecuador",
+    "Corte de Cuentas de El Salvador",
+    "Contraloría General de Cuentas de la República de Guatemala",
+    "Tribunal Superior de Cuentas de la República de Honduras",
+    "Auditoría Superior de la Federación de México",
+    "Contraloría General de la República de Nicaragua",
+    "Contraloría General de la República de Panamá",
+    "Contraloría General de la República de Paraguay",
+    "Contraloría General de la República de Perú",
+    "Oficina del Contralor del Estado Libre Asociado de Puerto Rico",
+    "Cámara de Cuentas de la República Dominicana",
+    "Tribunal de Cuentas de la República Oriental del Uruguay",
+    "Contraloría General de la República Bolivariana de Venezuela"
+]
+
+    presidencia = st.selectbox("Presidencia (EFS)", presidencias_efs)
     ano = st.text_input("Ano")
 
     # ---------------- Responsables -----------------------
